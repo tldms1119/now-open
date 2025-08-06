@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 interface SessionContent {
   email: string;
   username: string;
+  token: string;
 }
 
 export async function getSession() {
@@ -14,10 +15,11 @@ export async function getSession() {
   });
 }
 
-export async function logUserIn(email: string, username: string) {
+export async function logUserIn(user: SessionContent) {
   const session = await getSession();
-  session.email = email;
-  session.username = username;
+  session.email = user.email;
+  session.username = user.username;
+  session.token = user.token;
   await session.save();
   return redirect("/home");
 }

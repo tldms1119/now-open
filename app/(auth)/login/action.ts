@@ -7,6 +7,26 @@ import {
 } from "@/lib/constant";
 import { z } from "zod";
 import { logUserIn } from "@/lib/session";
+import { api } from "@/lib/fetchWrapper";
+
+interface FormDataContent {
+  email: string;
+  password: string;
+}
+
+async function handleSignIn(formData: { email: string; password: string }) {
+  const res = await api.public.post(
+    process.env.API_URL + "/auth/sign-in",
+    formData
+  );
+
+  if (!res.result) {
+    console.log(res.message);
+    return;
+  }
+
+  return res.payload;
+}
 
 const formSchema = z.object({
   email: z.email().toLowerCase(),
@@ -16,7 +36,7 @@ const formSchema = z.object({
     .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
 });
 
-export const login = async (prevState: any, formData: FormData) => {
+export const login = async (prevState: FormDataContent, formData: FormData) => {
   const data = {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
@@ -28,10 +48,9 @@ export const login = async (prevState: any, formData: FormData) => {
       error: result.error.flatten(),
     };
   } else {
-    // 0. if the user is found, check password hash
-    const ok = true; // TODO Replace with actual password verification logic
-    if (ok) {
-      return await logUserIn(0); // TODO Replace with actual session management logic
+    const user = await handleSignIn(result.data); // TODO Replace with actual password verification logic
+    if (user) {
+      return await logUserIn(user);
     } else {
       return {
         ...data,

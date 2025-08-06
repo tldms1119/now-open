@@ -7,8 +7,8 @@ import {
 } from "@/lib/constant";
 
 import { z } from "zod";
-
-import { logUserIn } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { api } from "@/lib/fetchWrapper";
 
 interface FormDataContent {
   email: string;
@@ -22,22 +22,17 @@ async function handleSignUp(formData: {
   email: string;
   password: string;
 }) {
-  const res = await (
-    await fetch(process.env.API_URL + "/auth/sign-up", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    })
-  ).json();
+  const res = await api.public.post(
+    process.env.API_URL + "/auth/sign-up",
+    formData
+  );
 
   if (!res.result) {
     console.log(res.message);
     return;
   }
 
-  return res.payload;
+  return redirect("/login");
 }
 
 async function isEmailTaken(email: string) {
@@ -107,11 +102,10 @@ export async function createAccount(
       error: result.error.flatten(),
     };
   } else {
-    const user = await handleSignUp({
+    return await handleSignUp({
       username: result.data.username,
       email: result.data.email,
       password: result.data.password,
     });
-    return await logUserIn(user.email, user.username);
   }
 }
