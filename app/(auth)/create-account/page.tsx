@@ -8,7 +8,16 @@ import { PASSWORD_MIN_LENGTH } from "@/lib/constant";
 import { useActionState } from "react";
 
 export default function CreateAccount() {
-  const [state, dispatch] = useActionState(createAccount, null);
+  const [state, dispatch] = useActionState(createAccount, {
+    email: "",
+    username: "",
+    password: "",
+    confirm: "",
+    error: {
+      fieldErrors: { email: [], username: [], password: [], confirm: [] },
+      formErrors: [],
+    },
+  });
   return (
     <div className="flex flex-col gap-10 py-8 px-6">
       <div className="flex flex-col gap-2 *:font-medium">
@@ -48,7 +57,7 @@ export default function CreateAccount() {
           name="confirm"
           placeholder="Confirm Password"
           required
-          errors={state?.error?.fieldErrors.confirm}
+          errors={state?.error?.fieldErrors.confirm || state?.error?.formErrors}
           defaultValue={state?.confirm}
           minLength={PASSWORD_MIN_LENGTH}
         />

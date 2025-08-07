@@ -47,7 +47,6 @@ async function publicFetch<T>(
 ): Promise<ApiResponse<T>> {
   try {
     const response = await fetch(url, options);
-
     if (!response.ok) {
       return {
         result: false,
@@ -55,7 +54,6 @@ async function publicFetch<T>(
         message: `${response.statusText || "An error occurred"}`,
       };
     }
-
     return await response.json();
   } catch (error: any) {
     console.error("Public fetch error:", error);

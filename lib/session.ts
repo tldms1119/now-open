@@ -2,10 +2,11 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-interface SessionContent {
+export interface SessionContent {
   email: string;
   username: string;
   token: string;
+  expireIn: number;
 }
 
 export async function getSession() {
@@ -15,7 +16,7 @@ export async function getSession() {
   });
 }
 
-export async function logUserIn(user: SessionContent) {
+export async function signUserIn(user: SessionContent) {
   const session = await getSession();
   session.email = user.email;
   session.username = user.username;

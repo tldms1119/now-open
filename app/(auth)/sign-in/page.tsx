@@ -5,10 +5,14 @@ import Button from "@/components/form-button";
 import Input from "@/components/form-input";
 import SocialLogin from "@/components/social-login";
 import { PASSWORD_MIN_LENGTH } from "@/lib/constant";
-import { login } from "./action";
+import { signIn } from "./action";
 
-export default function LogIn() {
-  const [state, dispatch] = useActionState(login, null);
+export default function SignIn() {
+  const [state, dispatch] = useActionState(signIn, {
+    email: "",
+    password: "",
+    error: { fieldErrors: { email: [], password: [] }, formErrors: [] },
+  });
   return (
     <div className="flex flex-col gap-10 py-8 px-6">
       <div className="flex flex-col gap-2 *:font-medium">

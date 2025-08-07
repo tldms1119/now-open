@@ -10,12 +10,12 @@ export default function Home() {
         <h2 className="text-2xl">Come visit us 🙂</h2>
       </div>
       <div className="flex flex-col items-center gap-3 w-full">
-        <Link href="/create-account" className="primary-btn py-2.5 text-lg">
+        <Link href="/home" className="primary-btn py-2.5 text-lg">
           Start
         </Link>
         <div className="flex gap-2">
           <span>Already had your account?</span>
-          <Link href="/login" className="hover:underline">
+          <Link href="/sign-in" className="hover:underline">
             Sign in
           </Link>
         </div>

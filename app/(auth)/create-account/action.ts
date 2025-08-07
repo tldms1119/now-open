@@ -17,36 +17,6 @@ interface FormDataContent {
   confirm: string;
 }
 
-async function handleSignUp(formData: {
-  username: string;
-  email: string;
-  password: string;
-}) {
-  const res = await api.public.post(
-    process.env.API_URL + "/auth/sign-up",
-    formData
-  );
-
-  if (!res.result) {
-    console.log(res.message);
-    return;
-  }
-
-  return redirect("/login");
-}
-
-async function isEmailTaken(email: string) {
-  const res = await (
-    await fetch(process.env.API_URL + `/auth/check-email?email=${email}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-  ).json();
-  return res.result;
-}
-
 // 1단계: 기본 스키마
 const baseSchema = z.object({
   username: z
@@ -73,8 +43,10 @@ const matchPasswordSchema = baseSchema.refine(
 
 // 3단계: email 존재 검사
 const finalFormSchema = matchPasswordSchema.transform(async (data, ctx) => {
-  const isAvailable = await isEmailTaken(data.email);
-  if (!isAvailable) {
+  const isAvailable = await api.public.get(
+    process.env.API_URL + `/auth/check-email?email=${data.email}`
+  );
+  if (!isAvailable.result) {
     ctx.addIssue({
       path: ["email"],
       code: "custom",
@@ -102,10 +74,25 @@ export async function createAccount(
       error: result.error.flatten(),
     };
   } else {
-    return await handleSignUp({
-      username: result.data.username,
-      email: result.data.email,
-      password: result.data.password,
-    });
+    const res = await api.public.post(
+      process.env.API_URL + "/auth/sign-up",
+      result.data
+    );
+    if (!res.result) {
+      return {
+        ...data,
+        error: {
+          fieldErrors: {
+            username: [],
+            email: [],
+            password: [],
+            confirm: [],
+          },
+          formErrors: [res.message || "An error occurred."],
+        },
+      };
+    } else {
+      return redirect("/sign-in");
+    }
   }
 }
