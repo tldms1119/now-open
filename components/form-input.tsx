@@ -15,7 +15,7 @@ export default function Input({
       <input
         className="bg-transparent rounded-md w-full h-10 focus:outline-none
             ring-2 focus:ring-4 transition ring-neutral-200 focus:ring-sky-500
-            border-none placeholder:text-neutral-400 pl-3"
+            border-none placeholder:text-neutral-400 px-3 text-neutral-600"
         name={name}
         {...rest}
       />

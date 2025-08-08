@@ -1,3 +1,5 @@
+"use server";
+
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -22,5 +24,11 @@ export async function signUserIn(user: SessionContent) {
   session.username = user.username;
   session.token = user.token;
   await session.save();
+  return redirect("/home");
+}
+
+export async function signOut() {
+  const session = await getSession();
+  session.destroy();
   return redirect("/home");
 }

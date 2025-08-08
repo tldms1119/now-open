@@ -10,7 +10,7 @@ export default function Button({ text }: ButtonProps) {
   return (
     <button
       disabled={pending}
-      className="primary-btn h-10 
+      className="primary-btn h-10 px-3
       disabled:bg-neutral-400 
       disabled:cursor-not-allowed"
     >
