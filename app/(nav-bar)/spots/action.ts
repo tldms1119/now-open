@@ -2,6 +2,7 @@
 
 import { TIME_REGEX, TIME_REGEX_ERROR } from "@/lib/constant";
 import { api } from "@/lib/fetchWrapper";
+import { saveImage } from "@/lib/file-utils";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -31,12 +32,20 @@ const spotSchema = z.object({
   businessHours: z
     .array(
       z.object({
-        dayOfWeek: z.number().int().min(0).max(6),
+        dayOfWeek: z.string(),
         openTime: z.string().regex(TIME_REGEX, TIME_REGEX_ERROR),
         closeTime: z.string().regex(TIME_REGEX, TIME_REGEX_ERROR),
       })
     )
-    .optional(),
+    .optional()
+    .refine(
+      (arr) => !arr || arr.length === new Set(arr.map((v) => v.dayOfWeek)).size,
+      {
+        message: "Duplicated day Of week.",
+        path: ["businessHours"],
+      }
+    ),
+  photos: z.array(z.string()).optional(),
 });
 
 export async function createSpot(prev: FormDataContent, formData: FormData) {
@@ -46,17 +55,35 @@ export async function createSpot(prev: FormDataContent, formData: FormData) {
     longitude: formData.get("longitude") as string,
     latitude: formData.get("latitude") as string,
     businessHours: JSON.parse(formData.get("businessHours") as string) || [],
+    photos: formData.getAll("photos") as File[],
   };
-  const result = spotSchema.safeParse(data);
+
+  // upload photos to s3 and create urls
+  // TODO change saveImage to uploadToS3
+  let photoUrls: string[] = [];
+  if (data.photos && data.photos.length > 0) {
+    photoUrls = await Promise.all(data.photos.map((file) => saveImage(file)));
+  }
+
+  // add urls to validated data
+  const result = await spotSchema.safeParseAsync({
+    ...data,
+    photos: photoUrls,
+  });
   if (!result.success) {
+    console.log("Validation Data:", data);
+    console.error("Validation failed:", result.error.flatten());
     return {
-      error: result.error.flatten(),
+      error: {
+        ...result.error.flatten(),
+        formErrors: [
+          result.error.flatten().fieldErrors?.businessHours?.[0] || "",
+        ],
+      },
       ...data,
     };
   } else {
-    console.log("Validated data:", result.data);
-    // TODO start from here
-    // fix select default check and time defaults values
+    console.log("Validated data:", result);
     const res = await api.public.post(
       process.env.API_URL + "/spots/register",
       result.data
