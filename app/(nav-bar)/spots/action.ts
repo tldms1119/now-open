@@ -84,10 +84,11 @@ export async function createSpot(prev: FormDataContent, formData: FormData) {
     };
   } else {
     console.log("Validated data:", result);
-    const res = await api.public.post(
-      process.env.API_URL + "/spots/register",
+    const res = await api.auth.post(
+      process.env.API_URL + "/spots",
       result.data
     );
+    console.log("API Response:", res);
     if (!res.result) {
       return {
         ...data,
