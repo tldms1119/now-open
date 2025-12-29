@@ -92,6 +92,11 @@ Required environment variables:
 
 - `COOKIE_PASSWORD` - Secret key for iron-session cookie encryption
 
+Optional environment variables:
+
+- `USE_MOCK_API` - Set to `"true"` to enable mock API responses for development without a backend server
+- `API_URL` - Backend API base URL (required when `USE_MOCK_API` is not enabled)
+
 ## Type Safety
 
 The project uses TypeScript with strict mode enabled, ensuring type safety across:

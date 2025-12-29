@@ -13,6 +13,7 @@ export function deleteImage(filename: string) {
   fs.rm(`./public${filename}`);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function uploadToS3(file: File): Promise<string> {
   // TODO implement real logic
   // 예: fetch, aws-sdk, presigned-url 등
