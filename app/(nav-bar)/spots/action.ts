@@ -7,11 +7,18 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 interface FormDataContent {
+  spotId?: string;
   name: string;
   desc: string;
   longitude: string;
   latitude: string;
   businessHours: object[];
+}
+
+interface BusinessHourContent {
+  dayOfWeek: string;
+  openTime: string;
+  closeTime: string;
 }
 
 const spotSchema = z.object({
@@ -47,6 +54,24 @@ const spotSchema = z.object({
     ),
   photos: z.array(z.string()).optional(),
 });
+
+export interface Spot {
+  id: string;
+  name: string;
+  desc?: string;
+  longitude: number;
+  latitude: number;
+  businessHours?: BusinessHourContent[];
+  photos?: string[];
+}
+
+export async function fetchSpots(): Promise<Spot[]> {
+  const res = await api.auth.get<Spot[]>(process.env.API_URL + "/spots");
+  if (!res.result || !res.payload) {
+    return [];
+  }
+  return Array.isArray(res.payload) ? res.payload : [];
+}
 
 export async function createSpot(prev: FormDataContent, formData: FormData) {
   const data = {
@@ -91,6 +116,70 @@ export async function createSpot(prev: FormDataContent, formData: FormData) {
     console.log("API Response:", res);
     if (!res.result) {
       return {
+        ...data,
+        error: {
+          fieldErrors: {
+            name: [],
+            desc: [],
+            latitude: [],
+            longitude: [],
+            businessHours: [],
+          },
+          formErrors: [res.message || "An error occurred."],
+        },
+      };
+    } else {
+      return redirect("/spots");
+    }
+  }
+}
+
+export async function updateSpot(prev: FormDataContent, formData: FormData) {
+  const spotId = formData.get("spotId") as string;
+  const data = {
+    name: formData.get("name") as string,
+    desc: formData.get("desc") as string,
+    longitude: formData.get("longitude") as string,
+    latitude: formData.get("latitude") as string,
+    businessHours: JSON.parse(formData.get("businessHours") as string) || [],
+    photos: formData.getAll("photos") as File[],
+  };
+
+  // upload photos to s3 and create urls
+  // TODO change saveImage to uploadToS3
+  let photoUrls: string[] = [];
+  if (data.photos && data.photos.length > 0) {
+    photoUrls = await Promise.all(data.photos.map((file) => saveImage(file)));
+  }
+
+  // add urls to validated data
+  const result = await spotSchema.safeParseAsync({
+    ...data,
+    photos: photoUrls,
+  });
+  if (!result.success) {
+    console.log("Validation Data:", data);
+    console.error("Validation failed:", result.error.flatten());
+    return {
+      spotId: spotId || "",
+      error: {
+        ...result.error.flatten(),
+        formErrors: [
+          result.error.flatten().fieldErrors?.businessHours?.[0] || "",
+        ],
+      },
+      ...data,
+    };
+  } else {
+    console.log("Validated data:", result);
+    const res = await api.auth.put(
+      process.env.API_URL + `/spots/${spotId}`,
+      result.data
+    );
+    console.log("API Response:", res);
+    if (!res.result) {
+      return {
+        spotId: spotId || "",
         ...data,
         error: {
           fieldErrors: {

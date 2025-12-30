@@ -107,7 +107,14 @@ export const api = {
         body: JSON.stringify(body),
         ...options,
       }),
-    // put, delete methods can be added similarly
+    put: <T>(url: string, body: unknown, options?: RequestInit) =>
+      authFetch<T>(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...options?.headers },
+        body: JSON.stringify(body),
+        ...options,
+      }),
+    // delete methods can be added similarly
   },
   public: {
     get: <T>(url: string, options?: RequestInit) =>

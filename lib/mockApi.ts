@@ -130,6 +130,38 @@ export async function mockAuthGet<T>(url: string): Promise<ApiResponse<T>> {
     };
   }
 
+  // Mock spots GET endpoint
+  if (pathname === "/spots") {
+    return {
+      result: true,
+      payload: [
+        {
+          id: "spot-1",
+          name: "Coffee Shop Downtown",
+          desc: "A cozy coffee shop in the heart of downtown",
+          longitude: 127.123456,
+          latitude: 37.123456,
+          businessHours: [
+            { dayOfWeek: "1", openTime: "09:00", closeTime: "18:00" },
+            { dayOfWeek: "2", openTime: "09:00", closeTime: "18:00" },
+          ],
+          photos: [],
+        },
+        {
+          id: "spot-2",
+          name: "Food Truck Park",
+          desc: "Various food trucks serving delicious meals",
+          longitude: 127.234567,
+          latitude: 37.234567,
+          businessHours: [
+            { dayOfWeek: "0", openTime: "11:00", closeTime: "20:00" },
+          ],
+          photos: [],
+        },
+      ] as T,
+    };
+  }
+
   // Default: return success
   return {
     result: true,
